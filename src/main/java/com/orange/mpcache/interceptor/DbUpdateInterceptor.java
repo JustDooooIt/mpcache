@@ -1,7 +1,6 @@
 package com.orange.mpcache.interceptor;
 
 import com.orange.mpcache.cache.Cache;
-import com.orange.mpcache.cache.impl.DefaultCache;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.Interceptor;

@@ -20,7 +20,7 @@ public class DefaultMapperFactory implements MapperFactory {
 
     private final List<Class<BaseMapper<?>>> mapperClassList = new ArrayList<>();
 
-    @Value("${mybatis-plus.mapper-class-locations}")
+    @Value("${mybatis-plus.mapper-class-package}")
     private String[] mapperLocations = new String[]{"com.example.mybatisdemo.mapper"};
 
     @Resource
