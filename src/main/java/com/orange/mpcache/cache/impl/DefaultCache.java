@@ -15,7 +15,6 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.proxy.Enhancer;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -57,6 +56,7 @@ public class DefaultCache implements Cache {
         map = new FixedLinkedHashMap<>(cacheSize);
     }
 
+    @Override
     @SneakyThrows
     @Transactional
     public <T> boolean add(T o) {
@@ -94,6 +94,7 @@ public class DefaultCache implements Cache {
         }
     }
 
+    @Override
     @SneakyThrows
     @Transactional
     public <T> boolean remove(@NotNull T o) {
@@ -113,6 +114,7 @@ public class DefaultCache implements Cache {
         }
     }
 
+    @Override
     @SneakyThrows
     public <T> boolean contains(T o) {
         Lock readLock = readWriteLock.readLock();
@@ -124,6 +126,7 @@ public class DefaultCache implements Cache {
         }
     }
 
+    @Override
     public <T> T get(Class<T> clazz, Object id) {
         Lock readLock = readWriteLock.readLock();
         try {
@@ -134,6 +137,7 @@ public class DefaultCache implements Cache {
         }
     }
 
+    @Override
     @SneakyThrows
     public <T> List<T> find(Class<T> clazz, @NotNull CacheLambdaQueryWrapper<T> wrapper) {
         Lock readLock = readWriteLock.readLock();
@@ -163,6 +167,7 @@ public class DefaultCache implements Cache {
         }
     }
 
+    @Override
     public void clearCache() {
         Lock writeLock = readWriteLock.writeLock();
         try {
