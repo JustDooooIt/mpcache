@@ -2,6 +2,7 @@ package com.orange.mpcache.cache.impl;
 
 import cn.hutool.core.map.FixedLinkedHashMap;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.orange.mpcache.annotation.ConstructorExtends;
 import com.orange.mpcache.cache.Cache;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -38,10 +40,6 @@ public class DefaultCache implements Cache {
 
     @Value("${mybatis-plus.cache-size}")
     private Integer cacheSize = 16;
-
-    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-
-    private Map<Key, Object> map;
 
     @Resource
     private MapperFactory mapperFactory;
@@ -54,6 +52,12 @@ public class DefaultCache implements Cache {
     private final ThreadLocal<Object> isUpdate = new ThreadLocal<>();
 
     private CacheUpdateInterceptor cacheUpdateInterceptor;
+
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
+    private Map<Key, Object> map;
+
+    private final Map<Key, String> selectColumnMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -131,12 +135,30 @@ public class DefaultCache implements Cache {
         }
     }
 
+    @SneakyThrows
     @Override
     public <T, ID extends Serializable> T get(Class<T> clazz, ID id) {
         Lock readLock = readWriteLock.readLock();
         try {
             readLock.lock();
-            return (T) map.get(new Key(clazz, id));
+            Wrapper<T> wrapper = new CacheLambdaQueryWrapper<>();
+            String selectAllColumn = wrapper.getSqlSelect() == null ? "" : wrapper.getSqlSelect();
+            Key key = new Key(clazz, id);
+            T result = (T) map.get(key);
+            if (result == null) {
+                BaseMapper<T> baseMapper = mapperFactory.getMapper(clazz);
+                result = baseMapper.selectById(id);
+                map.put(key, result);
+                selectColumnMap.put(key, selectAllColumn);
+            } else {
+                if (!selectAllColumn.equals(selectColumnMap.get(key))) {
+                    BaseMapper<T> baseMapper = mapperFactory.getMapper(clazz);
+                    result = baseMapper.selectById(id);
+                    map.put(key, result);
+                    selectColumnMap.put(key, selectAllColumn);
+                }
+            }
+            return result;
         } finally {
             readLock.unlock();
         }
@@ -156,14 +178,22 @@ public class DefaultCache implements Cache {
             });
             List<T> cacheResultList = list.stream().filter(wrapper.getPredicate()).collect(Collectors.toList());
             BaseMapper<T> baseMapper = mapperFactory.getMapper(clazz);
-            Long count = baseMapper.selectCount(wrapper);
-            if (count != cacheResultList.size()) {
-                List<T> dataList = baseMapper.selectList(wrapper);
-                cacheResultList.clear();
-                for (T data : dataList) {
-                    Object proxy = createProxy(data);
-                    map.put(new Key(data.getClass(), getId(data)), proxy);
-                    cacheResultList.add((T) proxy);
+            List<T> dbResult = baseMapper.selectList(wrapper);
+            if (dbResult.size() != cacheResultList.size()) {
+                cacheResultList = getProxyByList(dbResult, wrapper);
+            } else {
+                boolean isSameSelect = true;
+                String selectColumn = wrapper.getSqlSelect() == null ? "" : wrapper.getSqlSelect();
+                for (T data : cacheResultList) {
+                    Key key = new Key(data.getClass(), getId(data));
+                    if (!selectColumn.equals(selectColumnMap.get(key))) {
+                        isSameSelect = false;
+                        break;
+                    }
+                }
+                if (!isSameSelect) {
+                    List<T> dataList = baseMapper.selectList(wrapper);
+                    cacheResultList = getProxyByList(dataList, wrapper);
                 }
             }
             return cacheResultList;
@@ -178,6 +208,7 @@ public class DefaultCache implements Cache {
         try {
             writeLock.lock();
             map.clear();
+            selectColumnMap.clear();
         } finally {
             writeLock.unlock();
         }
@@ -186,6 +217,19 @@ public class DefaultCache implements Cache {
     @Override
     public ThreadLocal<Object> getIsUpdate() {
         return isUpdate;
+    }
+
+    @SneakyThrows
+    private <T> List<T> getProxyByList(List<T> list, Wrapper<T> wrapper) {
+        List<T> result = new ArrayList<>();
+        for (T data : list) {
+            Key key = new Key(data.getClass(), getId(data));
+            Object proxy = createProxy(data);
+            map.put(key, proxy);
+            result.add((T) proxy);
+            selectColumnMap.put(key, wrapper.getSqlSelect() == null ? "" : wrapper.getSqlSelect());
+        }
+        return result;
     }
 
     private <T> Serializable getId(T o) throws IllegalAccessException {
