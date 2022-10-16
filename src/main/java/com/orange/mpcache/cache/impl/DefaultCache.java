@@ -10,10 +10,12 @@ import com.orange.mpcache.interceptor.CacheUpdateInterceptor;
 import com.orange.mpcache.utils.CacheLambdaQueryWrapper;
 import com.orange.mpcache.utils.Key;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.proxy.Enhancer;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -32,6 +34,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
+@Component
 public class DefaultCache implements Cache {
 
     @Value("${mybatis-plus.cache-size}")
