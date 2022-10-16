@@ -9,7 +9,6 @@ import com.orange.mpcache.factory.MapperFactory;
 import com.orange.mpcache.interceptor.CacheUpdateInterceptor;
 import com.orange.mpcache.utils.CacheLambdaQueryWrapper;
 import com.orange.mpcache.utils.Key;
-import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +44,6 @@ public class DefaultCache implements Cache {
     @Resource
     private MapperFactory mapperFactory;
 
-    @Getter
     private final ThreadLocal<Object> isUpdate = new ThreadLocal<>();
 
     @Resource
@@ -176,6 +174,11 @@ public class DefaultCache implements Cache {
         } finally {
             writeLock.unlock();
         }
+    }
+
+    @Override
+    public ThreadLocal<Object> getIsUpdate() {
+        return isUpdate;
     }
 
     private <T> Serializable getId(T o) throws IllegalAccessException {

@@ -19,4 +19,6 @@ public interface Cache {
     <T> List<T> find(Class<T> clazz, @NotNull CacheLambdaQueryWrapper<T> wrapper);
 
     void clearCache();
+
+    ThreadLocal<Object> getIsUpdate();
 }

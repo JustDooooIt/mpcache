@@ -2,7 +2,7 @@ package com.orange.mpcache.interceptor;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.orange.mpcache.cache.impl.DefaultCache;
+import com.orange.mpcache.cache.Cache;
 import com.orange.mpcache.factory.MapperFactory;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.cglib.proxy.Enhancer;
@@ -18,7 +18,7 @@ import java.lang.reflect.Method;
 public class CacheUpdateInterceptor implements MethodInterceptor {
 
     @Resource
-    private DefaultCache globalCache;
+    private Cache cache;
 
     @Resource
     private MapperFactory mapperFactory;
@@ -26,7 +26,7 @@ public class CacheUpdateInterceptor implements MethodInterceptor {
     @Override
     public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
         try {
-            globalCache.getIsUpdate().set(new Object());
+            cache.getIsUpdate().set(new Object());
             Object obj = methodProxy.invokeSuper(o, objects);
             if (canAssigned(method)) {
                 BaseMapper<Object> baseMapper = mapperFactory.getMapper(Enhancer.isEnhanced(o.getClass()) ? o.getClass().getSuperclass() : o.getClass());
@@ -34,7 +34,7 @@ public class CacheUpdateInterceptor implements MethodInterceptor {
             }
             return obj;
         } finally {
-            globalCache.getIsUpdate().remove();
+            cache.getIsUpdate().remove();
         }
     }
 

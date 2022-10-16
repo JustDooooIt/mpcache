@@ -1,5 +1,6 @@
 package com.orange.mpcache.interceptor;
 
+import com.orange.mpcache.cache.Cache;
 import com.orange.mpcache.cache.impl.DefaultCache;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -18,7 +19,7 @@ import javax.annotation.Resource;
 public class DbUpdateInterceptor implements Interceptor {
 
     @Resource
-    private DefaultCache cache;
+    private Cache cache;
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
