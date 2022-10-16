@@ -49,12 +49,12 @@ public class DefaultCache implements Cache {
 
     private final ThreadLocal<Object> isUpdate = new ThreadLocal<>();
 
-    @Resource
     private CacheUpdateInterceptor cacheUpdateInterceptor;
 
     @PostConstruct
     public void init() {
         map = new FixedLinkedHashMap<>(cacheSize);
+        cacheUpdateInterceptor = new CacheUpdateInterceptor(this, mapperFactory);
     }
 
     @Override
@@ -213,4 +213,5 @@ public class DefaultCache implements Cache {
         enhancer.setCallback(cacheUpdateInterceptor);
         return enhancer.create(typeList.toArray(new Class<?>[0]), dataList.toArray());
     }
+
 }

@@ -17,11 +17,14 @@ import java.lang.reflect.Method;
 @Component
 public class CacheUpdateInterceptor implements MethodInterceptor {
 
-    @Resource
-    private Cache cache;
+    private final Cache cache;
 
-    @Resource
-    private MapperFactory mapperFactory;
+    private final MapperFactory mapperFactory;
+
+    public CacheUpdateInterceptor(Cache cache, MapperFactory mapperFactory) {
+        this.cache = cache;
+        this.mapperFactory = mapperFactory;
+    }
 
     @Override
     public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
