@@ -10,7 +10,6 @@ import com.orange.mpcache.interceptor.CacheUpdateInterceptor;
 import com.orange.mpcache.utils.CacheLambdaQueryWrapper;
 import com.orange.mpcache.utils.Key;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +46,11 @@ public class DefaultCache implements Cache {
     @Resource
     private MapperFactory mapperFactory;
 
+    /**
+     * 记录当前线程是否执行更新操作，当拦截更新操作时，
+     * 判断ThreadLocal是否存在数据，存在即当前线程
+     * 正在更新缓存以及数据库数据，不清除缓存
+     */
     private final ThreadLocal<Object> isUpdate = new ThreadLocal<>();
 
     private CacheUpdateInterceptor cacheUpdateInterceptor;
@@ -128,7 +132,7 @@ public class DefaultCache implements Cache {
     }
 
     @Override
-    public <T> T get(Class<T> clazz, Object id) {
+    public <T, ID extends Serializable> T get(Class<T> clazz, ID id) {
         Lock readLock = readWriteLock.readLock();
         try {
             readLock.lock();
