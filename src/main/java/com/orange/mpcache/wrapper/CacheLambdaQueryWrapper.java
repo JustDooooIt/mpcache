@@ -145,14 +145,15 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
 
     @Override
     public CacheLambdaQueryWrapper<T> eq(boolean condition, SFunction<T, ?> column, Object val) {
+        Predicate<T> p = t -> Objects.equals(column.apply(t), val);
         if (condition) {
             if (predicate == null) {
-                predicate = t -> Objects.equals(column.apply(t), val);
+                predicate = p;
             } else if(isOr) {
                 isOr = false;
-                predicate = predicate.or(t -> Objects.equals(column.apply(t), val));
+                predicate = predicate.or(p);
             } else {
-                predicate = predicate.and(t -> Objects.equals(column.apply(t), val));
+                predicate = predicate.and(p);
             }
         }
         return super.eq(condition, column, val);
@@ -161,13 +162,14 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     @Override
     public CacheLambdaQueryWrapper<T> ne(boolean condition, SFunction<T, ?> column, Object val) {
         if (condition) {
+            Predicate<T> p = t -> !Objects.equals(column.apply(t), val);
             if (predicate == null) {
-                predicate = t -> !Objects.equals(column.apply(t), val);
+                predicate = p;
             } else if(isOr) {
                 isOr = false;
-                predicate = predicate.or(t -> !Objects.equals(column.apply(t), val));
+                predicate = predicate.or(p);
             } else {
-                predicate = predicate.and(t -> !Objects.equals(column.apply(t), val));
+                predicate = predicate.and(p);
             }
         }
         return super.ne(condition, column, val);
@@ -176,14 +178,15 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     @Override
     public CacheLambdaQueryWrapper<T> gt(boolean condition, SFunction<T, ?> column, Object val) {
         if (condition) {
+            Predicate<T> p = t -> ComparableUtils.<Comparable>gt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
             if (predicate == null) {
-                predicate = t -> ComparableUtils.<Comparable>gt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
+                predicate = p;
             }
             else if (isOr) {
                 isOr = false;
-                predicate = predicate.or(t -> ComparableUtils.<Comparable>gt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+                predicate = predicate.or(p);
             } else {
-                predicate = predicate.and(t -> ComparableUtils.<Comparable>gt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+                predicate = predicate.and(p);
             }
         }
         return super.gt(condition, column, val);
@@ -192,14 +195,15 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     @Override
     public CacheLambdaQueryWrapper<T> lt(boolean condition, SFunction<T, ?> column, Object val) {
         if (condition) {
+            Predicate<T> p = t -> ComparableUtils.<Comparable>lt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
             if (predicate == null) {
-                predicate = t -> ComparableUtils.<Comparable>lt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
+                predicate = p;
             }
             else if (isOr) {
                 isOr = false;
-                predicate = predicate.or(t -> ComparableUtils.<Comparable>lt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+                predicate = predicate.or(p);
             } else {
-                predicate = predicate.and(t -> ComparableUtils.<Comparable>lt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+                predicate = predicate.and(p);
             }
         }
         return super.lt(condition, column, val);
@@ -208,14 +212,15 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     @Override
     public CacheLambdaQueryWrapper<T> ge(boolean condition, SFunction<T, ?> column, Object val) {
         if (condition) {
+            Predicate<T> p = t -> ComparableUtils.<Comparable>ge((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
             if (predicate == null) {
-                predicate = t -> ComparableUtils.<Comparable>ge((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
+                predicate = p;
             }
             else if (isOr) {
                 isOr = false;
-                predicate = predicate.or(t -> ComparableUtils.<Comparable>ge((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+                predicate = predicate.or(p);
             } else {
-                predicate = predicate.and(t -> ComparableUtils.<Comparable>ge((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+                predicate = predicate.and(p);
             }
         }
         return super.ge(condition, column, val);
@@ -224,17 +229,52 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     @Override
     public CacheLambdaQueryWrapper<T> le(boolean condition, SFunction<T, ?> column, Object val) {
         if (condition) {
+            Predicate<T> p = t -> ComparableUtils.<Comparable>le((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
             if (predicate == null) {
-                predicate = t -> ComparableUtils.<Comparable>le((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
+                predicate = p;
             }
             else if (isOr) {
                 isOr = false;
-                predicate = predicate.or(t -> ComparableUtils.<Comparable>le((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+                predicate = predicate.or(p);
             } else {
-                predicate = predicate.and(t -> ComparableUtils.<Comparable>le((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+                predicate = predicate.and(p);
             }
         }
         return super.le(condition, column, val);
+    }
+
+    @Override
+    public CacheLambdaQueryWrapper<T> between(boolean condition, SFunction<T, ?> column, Object val1, Object val2) {
+        if (condition) {
+            Predicate<T> p = t -> ComparableUtils.<Comparable>between((Comparable<Object>) val1, (Comparable<Object>) val2).test((Comparable<Object>) column.apply(t));
+            if (predicate == null) {
+                predicate = p;
+            }
+            else if (isOr) {
+                isOr = false;
+                predicate = predicate.or(p);
+            } else {
+                predicate = predicate.and(p);
+            }
+        }
+        return super.between(condition, column, val1, val2);
+    }
+
+    @Override
+    public CacheLambdaQueryWrapper<T> notBetween(boolean condition, SFunction<T, ?> column, Object val1, Object val2) {
+        if (condition) {
+            Predicate<T> p = t -> !ComparableUtils.<Comparable>between((Comparable<Object>) val1, (Comparable<Object>) val2).test((Comparable<Object>) column.apply(t));
+            if (predicate == null) {
+                predicate = p;
+            }
+            else if (isOr) {
+                isOr = false;
+                predicate = predicate.or(p);
+            } else {
+                predicate = predicate.and(p);
+            }
+        }
+        return super.notBetween(condition, column, val1, val2);
     }
 
     @Override
