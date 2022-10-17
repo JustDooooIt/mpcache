@@ -8,11 +8,14 @@ import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.core.toolkit.ArrayUtils;
 import com.baomidou.mybatisplus.core.toolkit.Assert;
+import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
+import com.baomidou.mybatisplus.core.toolkit.support.LambdaMeta;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.ibatis.reflection.property.PropertyNamer;
 
 import java.lang.reflect.Field;
 import java.util.LinkedList;
@@ -30,7 +33,7 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     @Getter
     private Boolean isOr = false;
 
-    private final List<String> columnList = new LinkedList<>();
+    private final List<String> fieldList = new LinkedList<>();
 
     /**
      * 查询字段
@@ -76,7 +79,9 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     public final CacheLambdaQueryWrapper<T> select(SFunction<T, ?>... columns) {
         if (ArrayUtils.isNotEmpty(columns)) {
             for (SFunction<T, ?> column : columns) {
-                columnList.add(columnToString(column));
+                LambdaMeta meta = LambdaUtils.extract(column);
+                String fieldName = PropertyNamer.methodToProperty(meta.getImplMethodName());
+                fieldList.add(fieldName);
             }
             this.sqlSelect.setStringValue(columnsToString(false, columns));
         }
@@ -194,14 +199,46 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     }
 
     @Override
+    public CacheLambdaQueryWrapper<T> ge(boolean condition, SFunction<T, ?> column, Object val) {
+        if (condition) {
+            if (predicate == null) {
+                predicate = t -> ComparableUtils.<Comparable>ge((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
+            }
+            else if (isOr) {
+                isOr = false;
+                predicate = predicate.or(t -> ComparableUtils.<Comparable>ge((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+            } else {
+                predicate = predicate.and(t -> ComparableUtils.<Comparable>ge((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+            }
+        }
+        return super.ge(condition, column, val);
+    }
+
+    @Override
+    public CacheLambdaQueryWrapper<T> le(boolean condition, SFunction<T, ?> column, Object val) {
+        if (condition) {
+            if (predicate == null) {
+                predicate = t -> ComparableUtils.<Comparable>le((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
+            }
+            else if (isOr) {
+                isOr = false;
+                predicate = predicate.or(t -> ComparableUtils.<Comparable>le((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+            } else {
+                predicate = predicate.and(t -> ComparableUtils.<Comparable>le((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+            }
+        }
+        return super.le(condition, column, val);
+    }
+
+    @Override
     public CacheLambdaQueryWrapper<T> or() {
         isOr = true;
         return super.or();
     }
 
 
-    public List<String> getColumnList() {
-        return columnList;
+    public List<String> getFieldList() {
+        return fieldList;
     }
 
     public CacheLambdaQueryWrapper<T> selectAll() {

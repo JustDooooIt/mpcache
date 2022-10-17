@@ -26,10 +26,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -185,24 +182,25 @@ public class DefaultCache implements Cache {
                 List<T> dbResult = baseMapper.selectList(copyWrapper);
                 cacheResultList = getProxyByList(dbResult, wrapper);
             }
-
+            Map<Field, Boolean> fieldMatchMap = new HashMap<>();
             cacheResultList = cacheResultList.stream().peek(t -> {
-                boolean anyMatch = false;
-                Field matchField = null;
-                for (String column : wrapper.getColumnList()) {
-                    for (Field field : FieldUtils.getAllFields(t.getClass())) {
-                        if (column.equals(field.getName())) {
-                            anyMatch = true;
-                            matchField = field;
+                if (wrapper.getFieldList().size() > 0) {
+                    List<Field> fields = FieldUtils.getAllFieldsList(t.getClass());
+                    for (Field field : fields) {
+                        fieldMatchMap.put(field, false);
+                    }
+                    for (Field field : fields) {
+                        for (String selectField : wrapper.getFieldList()) {
+                            if (field.getName().equals(selectField)) {
+                                fieldMatchMap.put(field, true);
+                                break;
+                            }
                         }
                     }
-                }
-                if (anyMatch) {
-                    for (Field field : FieldUtils.getAllFields(t.getClass())) {
+                    for (Field field : fieldMatchMap.keySet()) {
+                        boolean isMatch = fieldMatchMap.get(field);
                         TableField tableField = field.getAnnotation(TableField.class);
-                        if (!field.equals(matchField)
-                                && !field.getName().contains("CGLIB$")
-                                && (tableField == null || tableField.exist())) {
+                        if (!isMatch && !field.getName().contains("CGLIB$") && (tableField == null || tableField.exist())) {
                             try {
                                 FieldUtils.writeField(field, t, null, true);
                             } catch (IllegalAccessException e) {
@@ -210,6 +208,7 @@ public class DefaultCache implements Cache {
                             }
                         }
                     }
+                    fieldMatchMap.clear();
                 }
             }).collect(Collectors.toList());
             return cacheResultList;
@@ -278,5 +277,4 @@ public class DefaultCache implements Cache {
         enhancer.setCallback(cacheUpdateInterceptor);
         return enhancer.create(typeList.toArray(new Class<?>[0]), dataList.toArray());
     }
-
 }
