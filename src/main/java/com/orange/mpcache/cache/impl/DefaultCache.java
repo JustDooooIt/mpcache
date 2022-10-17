@@ -55,7 +55,6 @@ public class DefaultCache implements Cache {
 
     private Map<Key, Object> map;
 
-    private final Map<Key, String> selectColumnMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
@@ -146,14 +145,8 @@ public class DefaultCache implements Cache {
             if (result == null) {
                 BaseMapper<T> baseMapper = mapperFactory.getMapper(clazz);
                 result = baseMapper.selectById(id);
-                map.put(key, result);
-                selectColumnMap.put(key, selectAllColumn);
-            } else {
-                if (!selectAllColumn.equals(selectColumnMap.get(key))) {
-                    BaseMapper<T> baseMapper = mapperFactory.getMapper(clazz);
-                    result = baseMapper.selectById(id);
+                if (result != null) {
                     map.put(key, result);
-                    selectColumnMap.put(key, selectAllColumn);
                 }
             }
             return result;
@@ -180,7 +173,7 @@ public class DefaultCache implements Cache {
             Long count = baseMapper.selectCount(copyWrapper);
             if (cacheResultList.size() != count) {
                 List<T> dbResult = baseMapper.selectList(copyWrapper);
-                cacheResultList = getProxyByList(dbResult, wrapper);
+                cacheResultList = getProxyByList(dbResult);
             }
             Map<Field, Boolean> fieldMatchMap = new HashMap<>();
             cacheResultList = cacheResultList.stream().peek(t -> {
@@ -223,7 +216,6 @@ public class DefaultCache implements Cache {
         try {
             writeLock.lock();
             map.clear();
-            selectColumnMap.clear();
         } finally {
             writeLock.unlock();
         }
@@ -235,14 +227,13 @@ public class DefaultCache implements Cache {
     }
 
     @SneakyThrows
-    private <T> List<T> getProxyByList(List<T> list, Wrapper<T> wrapper) {
+    private <T> List<T> getProxyByList(List<T> list) {
         List<T> result = new ArrayList<>();
         for (T data : list) {
             Key key = new Key(data.getClass(), getId(data));
             Object proxy = createProxy(data);
             map.put(key, proxy);
             result.add((T) proxy);
-            selectColumnMap.put(key, wrapper.getSqlSelect() == null ? "" : wrapper.getSqlSelect());
         }
         return result;
     }
