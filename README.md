@@ -6,6 +6,10 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
 #### 说明
 目前还处于开发阶段，求求来个人测试吧
 
+#### 前置条件
+1，表必须有主键，否则无法正常使用
+2，目前只支持单表查询
+
 #### 示例
 ```java
 @Resource
@@ -17,7 +21,7 @@ modelDO.setName("model");
 //add 插入数据，如果数据已存在则返回false
 cache.add(modelDO);
 
-//get 从缓存查询数据，注意，表必须有主键，否则无法正常使用
+//get 从缓存查询数据
 modelDO = cache.get(ModelDO.class, modelDO.getId());
 List<ModelDO> list = cache.find(Cache.find(ModelDO.class,
         new CacheLambdaQueryWrapper<ModelDO>()
