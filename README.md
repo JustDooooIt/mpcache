@@ -18,7 +18,11 @@ modelDO.setName("model");
 cache.add(modelDO);
 
 //get
-cache.get(ModelDO.class, modelDO.getId());
+modelDO = cache.get(ModelDO.class, modelDO.getId());
+List<ModelDO> list = cache.find(Cache.find(ModelDO.class,
+        new CacheLambdaQueryWrapper<ModelDO>()
+            .eq(ModelDO::getName, "model")
+            .select(ModelDO::getName));
 
 //set
 modelDO.setName("yeah");
