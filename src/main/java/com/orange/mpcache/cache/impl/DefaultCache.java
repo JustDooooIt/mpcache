@@ -1,6 +1,5 @@
 package com.orange.mpcache.cache.impl;
 
-import cn.hutool.core.map.FixedLinkedHashMap;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
@@ -9,6 +8,7 @@ import com.orange.mpcache.annotation.ConstructorExtends;
 import com.orange.mpcache.cache.Cache;
 import com.orange.mpcache.factory.MapperFactory;
 import com.orange.mpcache.interceptor.CacheUpdateInterceptor;
+import com.orange.mpcache.utils.FixedLinkedHashMap;
 import com.orange.mpcache.wrapper.CacheLambdaQueryWrapper;
 import com.orange.mpcache.base.Key;
 import lombok.SneakyThrows;
@@ -44,8 +44,8 @@ public class DefaultCache implements Cache {
 
     /**
      * 记录当前线程是否执行更新操作，当拦截更新操作时，
-     * 判断ThreadLocal是否存在数据，存在即当前线程
-     * 正在更新缓存以及数据库数据，不清除缓存
+     * 判断ThreadLocal是否存在数据，存在即当前线程正
+     * 在更新缓存以及数据库数据，不清除缓存
      */
     private final ThreadLocal<Object> isUpdate = new ThreadLocal<>();
 
@@ -54,7 +54,6 @@ public class DefaultCache implements Cache {
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     private Map<Key, Object> map;
-
 
     @PostConstruct
     public void init() {
@@ -72,28 +71,29 @@ public class DefaultCache implements Cache {
             isUpdate.set(new Object());
             Serializable id = getId(o);
             BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass());
-            Key key;
             if (id == null) {
                 baseMapper.insert(o);
                 id = getId(o);
                 o = baseMapper.selectById(id);
-                key = new Key(o.getClass(), id);
+                map.put(new Key(o.getClass(), id), createProxy(o));
+                return true;
             } else {
-                key = new Key(o.getClass(), id);
+                Key key = new Key(o.getClass(), id);
                 if (map.containsKey(key)) {
                     return false;
                 } else {
-                    boolean isExist = baseMapper.selectById(id) != null;
-                    if (!isExist) {
+                    T dbResult = baseMapper.selectById(id);
+                    if (dbResult == null) {
                         baseMapper.insert(o);
                         id = getId(o);
                         key = new Key(o.getClass(), id);
+                        map.put(key, o);
+                        return true;
+                    } else {
+                        return false;
                     }
                 }
-                o = baseMapper.selectById(id);
             }
-            map.put(key, createProxy(o));
-            return true;
         } finally {
             isUpdate.remove();
             writeLock.unlock();
