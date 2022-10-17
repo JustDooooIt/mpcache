@@ -14,16 +14,16 @@ private Cache cache;
 ModelDO modelDO = new ModelDO();
 modelDO.setName("model");
 
-//add
+//add 插入数据，如果数据已存在则返回false
 cache.add(modelDO);
 
-//get
+//get 从缓存查询数据，注意，表必须有主键，否则无法正常使用
 modelDO = cache.get(ModelDO.class, modelDO.getId());
 List<ModelDO> list = cache.find(Cache.find(ModelDO.class,
         new CacheLambdaQueryWrapper<ModelDO>()
             .eq(ModelDO::getName, "model")
             .select(ModelDO::getName));
 
-//set
+//set 调用set方法会自动将数据同步到数据库
 modelDO.setName("yeah");
 ```

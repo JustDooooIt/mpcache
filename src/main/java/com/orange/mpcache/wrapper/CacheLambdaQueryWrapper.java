@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.SharedString;
 import com.baomidou.mybatisplus.core.conditions.query.Query;
 import com.baomidou.mybatisplus.core.conditions.segments.MergeSegments;
 import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
+import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.core.toolkit.ArrayUtils;
 import com.baomidou.mybatisplus.core.toolkit.Assert;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLambdaQueryWrapper<T>>
         implements Query<CacheLambdaQueryWrapper<T>, T, SFunction<T, ?>>, Cloneable {
@@ -33,7 +35,7 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     @Getter
     private Boolean isOr = false;
 
-    private final List<String> fieldList = new LinkedList<>();
+    private List<String> fieldList = new LinkedList<>();
 
     /**
      * 查询字段
@@ -106,8 +108,13 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
         } else {
             setEntityClass(entityClass);
         }
+        TableInfo tableInfo = TableInfoHelper.getTableInfo(entityClass);
+        List<TableFieldInfo> tableFieldInfos = tableInfo.getFieldList().stream()
+                .filter(predicate)
+                .collect(Collectors.toList());
+        fieldList = tableFieldInfos.stream().map(TableFieldInfo::getProperty).collect(Collectors.toList());
         Assert.notNull(entityClass, "entityClass can not be null");
-        this.sqlSelect.setStringValue(TableInfoHelper.getTableInfo(entityClass).chooseSelect(predicate));
+        this.sqlSelect.setStringValue(tableInfo.chooseSelect(predicate));
         return typedThis;
     }
 
