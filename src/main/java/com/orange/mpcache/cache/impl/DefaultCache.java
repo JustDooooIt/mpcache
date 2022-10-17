@@ -1,6 +1,7 @@
 package com.orange.mpcache.cache.impl;
 
 import cn.hutool.core.map.FixedLinkedHashMap;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -8,8 +9,8 @@ import com.orange.mpcache.annotation.ConstructorExtends;
 import com.orange.mpcache.cache.Cache;
 import com.orange.mpcache.factory.MapperFactory;
 import com.orange.mpcache.interceptor.CacheUpdateInterceptor;
-import com.orange.mpcache.utils.CacheLambdaQueryWrapper;
-import com.orange.mpcache.utils.Key;
+import com.orange.mpcache.wrapper.CacheLambdaQueryWrapper;
+import com.orange.mpcache.base.Key;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.jetbrains.annotations.NotNull;
@@ -170,6 +171,7 @@ public class DefaultCache implements Cache {
         Lock readLock = readWriteLock.readLock();
         try {
             readLock.lock();
+            BaseMapper<T> baseMapper = mapperFactory.getMapper(clazz);
             List<T> list = new ArrayList<>();
             map.forEach((key, value) -> {
                 if (key.getClazz() == clazz) {
@@ -177,25 +179,39 @@ public class DefaultCache implements Cache {
                 }
             });
             List<T> cacheResultList = list.stream().filter(wrapper.getPredicate()).collect(Collectors.toList());
-            BaseMapper<T> baseMapper = mapperFactory.getMapper(clazz);
-            List<T> dbResult = baseMapper.selectList(wrapper);
-            if (dbResult.size() != cacheResultList.size()) {
+            CacheLambdaQueryWrapper<T> copyWrapper = wrapper.clone().selectAll();
+            Long count = baseMapper.selectCount(copyWrapper);
+            if (cacheResultList.size() != count) {
+                List<T> dbResult = baseMapper.selectList(copyWrapper);
                 cacheResultList = getProxyByList(dbResult, wrapper);
-            } else {
-                boolean isSameSelect = true;
-                String selectColumn = wrapper.getSqlSelect() == null ? "" : wrapper.getSqlSelect();
-                for (T data : cacheResultList) {
-                    Key key = new Key(data.getClass(), getId(data));
-                    if (!selectColumn.equals(selectColumnMap.get(key))) {
-                        isSameSelect = false;
-                        break;
+            }
+
+            cacheResultList = cacheResultList.stream().peek(t -> {
+                boolean anyMatch = false;
+                Field matchField = null;
+                for (String column : wrapper.getColumnList()) {
+                    for (Field field : FieldUtils.getAllFields(t.getClass())) {
+                        if (column.equals(field.getName())) {
+                            anyMatch = true;
+                            matchField = field;
+                        }
                     }
                 }
-                if (!isSameSelect) {
-                    List<T> dataList = baseMapper.selectList(wrapper);
-                    cacheResultList = getProxyByList(dataList, wrapper);
+                if (anyMatch) {
+                    for (Field field : FieldUtils.getAllFields(t.getClass())) {
+                        TableField tableField = field.getAnnotation(TableField.class);
+                        if (!field.equals(matchField)
+                                && !field.getName().contains("CGLIB$")
+                                && (tableField == null || tableField.exist())) {
+                            try {
+                                FieldUtils.writeField(field, t, null, true);
+                            } catch (IllegalAccessException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
                 }
-            }
+            }).collect(Collectors.toList());
             return cacheResultList;
         } finally {
             readLock.unlock();
@@ -248,6 +264,7 @@ public class DefaultCache implements Cache {
                     typeList.add(parameter.getType());
                     dataList.add(FieldUtils.readField(o, parameter.getName(), true));
                 }
+                break;
             }
         }
     }

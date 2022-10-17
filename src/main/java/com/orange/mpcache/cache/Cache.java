@@ -1,9 +1,7 @@
 package com.orange.mpcache.cache;
 
-import com.orange.mpcache.utils.CacheLambdaQueryWrapper;
-import lombok.SneakyThrows;
+import com.orange.mpcache.wrapper.CacheLambdaQueryWrapper;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.List;

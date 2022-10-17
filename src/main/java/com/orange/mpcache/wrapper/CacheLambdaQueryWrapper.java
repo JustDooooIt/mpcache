@@ -1,4 +1,4 @@
-package com.orange.mpcache.utils;
+package com.orange.mpcache.wrapper;
 
 import com.baomidou.mybatisplus.core.conditions.AbstractLambdaWrapper;
 import com.baomidou.mybatisplus.core.conditions.SharedString;
@@ -10,20 +10,27 @@ import com.baomidou.mybatisplus.core.toolkit.ArrayUtils;
 import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.compare.ComparableUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
+import java.lang.reflect.Field;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLambdaQueryWrapper<T>>
-        implements Query<CacheLambdaQueryWrapper<T>, T, SFunction<T, ?>> {
+        implements Query<CacheLambdaQueryWrapper<T>, T, SFunction<T, ?>>, Cloneable {
 
     private Predicate<T> predicate;
 
     @Getter
     private Boolean isOr = false;
+
+    private final List<String> columnList = new LinkedList<>();
 
     /**
      * 查询字段
@@ -68,6 +75,9 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     @Override
     public final CacheLambdaQueryWrapper<T> select(SFunction<T, ?>... columns) {
         if (ArrayUtils.isNotEmpty(columns)) {
+            for (SFunction<T, ?> column : columns) {
+                columnList.add(columnToString(column));
+            }
             this.sqlSelect.setStringValue(columnsToString(false, columns));
         }
         return typedThis;
@@ -99,6 +109,10 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     @Override
     public String getSqlSelect() {
         return sqlSelect.getStringValue();
+    }
+
+    public String getSqlSelectOrDefault() {
+        return sqlSelect.getStringValue() == null ? "" : sqlSelect.getStringValue();
     }
 
     /**
@@ -185,7 +199,36 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
         return super.or();
     }
 
+
+    public List<String> getColumnList() {
+        return columnList;
+    }
+
+    public CacheLambdaQueryWrapper<T> selectAll() {
+        this.sqlSelect = new SharedString();
+        return typedThis;
+    }
+
     public Predicate<T> getPredicate() {
         return predicate == null ? t -> true : predicate;
+    }
+
+    /**
+     * 创建新对象，对属性浅拷贝
+     * @return 克隆对象
+     */
+    @SneakyThrows
+    @Override
+    public CacheLambdaQueryWrapper<T> clone() {
+        CacheLambdaQueryWrapper<T> wrapper = new CacheLambdaQueryWrapper<>();
+        Class<?> clazz = this.getClass();
+        List<Field> fieldList = FieldUtils.getAllFieldsList(clazz);
+        for (Field field : fieldList) {
+            if (!"typedThis".equals(field.getName())) {
+                Object value = FieldUtils.readField(field, this, true);
+                FieldUtils.writeField(field, wrapper, value, true);
+            }
+        }
+        return wrapper;
     }
 }

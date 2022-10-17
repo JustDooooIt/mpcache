@@ -1,4 +1,4 @@
-package com.orange.mpcache.utils;
+package com.orange.mpcache.base;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
