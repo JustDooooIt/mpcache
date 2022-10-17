@@ -111,9 +111,15 @@ public class DefaultCache implements Cache {
         try {
             writeLock.lock();
             isUpdate.set(new Object());
-            BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass().getSuperclass());
-            baseMapper.deleteById(o);
-            return map.remove(new Key(o.getClass().getSuperclass(), getId(o)), o);
+            if (Enhancer.isEnhanced(o.getClass())) {
+                BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass().getSuperclass());
+                baseMapper.deleteById(o);
+                return map.remove(new Key(o.getClass().getSuperclass(), getId(o)), o);
+            } else {
+                BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass());
+                baseMapper.deleteById(o);
+                return map.remove(new Key(o.getClass(), getId(o)), o);
+            }
         } finally {
             isUpdate.remove();
             writeLock.unlock();
@@ -126,7 +132,23 @@ public class DefaultCache implements Cache {
         Lock readLock = readWriteLock.readLock();
         try{
             readLock.lock();
-            return map.containsKey(new Key(o.getClass().getSuperclass(), getId(o)));
+            if (Enhancer.isEnhanced(o.getClass())) {
+                if (map.containsKey(new Key(o.getClass().getSuperclass(), getId(o)))) {
+                    return true;
+                } else {
+                    BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass().getSuperclass());
+                    o = baseMapper.selectById(getId(o));
+                    return o != null;
+                }
+            } else {
+                if (map.containsKey(new Key(o.getClass(), getId(o)))) {
+                    return true;
+                } else {
+                    BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass());
+                    o = baseMapper.selectById(getId(o));
+                    return o != null;
+                }
+            }
         } finally {
             readLock.unlock();
         }
