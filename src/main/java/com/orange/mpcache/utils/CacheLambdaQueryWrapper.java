@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.toolkit.ArrayUtils;
 import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import lombok.Getter;
+import org.apache.commons.lang3.compare.ComparableUtils;
 
 import java.util.Map;
 import java.util.Objects;
@@ -129,6 +130,53 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
             }
         }
         return super.eq(condition, column, val);
+    }
+
+    @Override
+    public CacheLambdaQueryWrapper<T> ne(boolean condition, SFunction<T, ?> column, Object val) {
+        if (condition) {
+            if (predicate == null) {
+                predicate = t -> !Objects.equals(column.apply(t), val);
+            } else if(isOr) {
+                isOr = false;
+                predicate = predicate.or(t -> !Objects.equals(column.apply(t), val));
+            } else {
+                predicate = predicate.and(t -> !Objects.equals(column.apply(t), val));
+            }
+        }
+        return super.ne(condition, column, val);
+    }
+
+    @Override
+    public CacheLambdaQueryWrapper<T> gt(boolean condition, SFunction<T, ?> column, Object val) {
+        if (condition) {
+            if (predicate == null) {
+                predicate = t -> ComparableUtils.<Comparable>gt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
+            }
+            else if (isOr) {
+                isOr = false;
+                predicate = predicate.or(t -> ComparableUtils.<Comparable>gt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+            } else {
+                predicate = predicate.and(t -> ComparableUtils.<Comparable>gt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+            }
+        }
+        return super.gt(condition, column, val);
+    }
+
+    @Override
+    public CacheLambdaQueryWrapper<T> lt(boolean condition, SFunction<T, ?> column, Object val) {
+        if (condition) {
+            if (predicate == null) {
+                predicate = t -> ComparableUtils.<Comparable>lt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t));
+            }
+            else if (isOr) {
+                isOr = false;
+                predicate = predicate.or(t -> ComparableUtils.<Comparable>lt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+            } else {
+                predicate = predicate.and(t -> ComparableUtils.<Comparable>lt((Comparable<Object>) val).test((Comparable<Object>) column.apply(t)));
+            }
+        }
+        return super.lt(condition, column, val);
     }
 
     @Override
