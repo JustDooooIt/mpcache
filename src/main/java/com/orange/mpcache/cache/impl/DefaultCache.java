@@ -55,6 +55,8 @@ public class DefaultCache implements Cache {
 
     private Map<Key, Object> map;
 
+    private final Object PRESENT = new Object();
+
     @PostConstruct
     public void init() {
         map = new FixedLinkedHashMap<>(cacheSize);
@@ -68,7 +70,7 @@ public class DefaultCache implements Cache {
         Lock writeLock = readWriteLock.writeLock();
         try {
             writeLock.lock();
-            isUpdate.set(new Object());
+            isUpdate.set(PRESENT);
             Serializable id = getId(o);
             BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass());
             if (id == null) {
@@ -110,7 +112,7 @@ public class DefaultCache implements Cache {
         Lock writeLock = readWriteLock.writeLock();
         try {
             writeLock.lock();
-            isUpdate.set(new Object());
+            isUpdate.set(PRESENT);
             if (Enhancer.isEnhanced(o.getClass())) {
                 BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass().getSuperclass());
                 baseMapper.deleteById(o);

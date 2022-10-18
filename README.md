@@ -18,6 +18,33 @@ mybatis-plus:
   cache-size: 16
 ```
 
+实体类需要加@ConstructorExtends，将需要的属性写入构造器
+```java
+@Data
+@EqualsAndHashCode(callSuper = true)
+@TableName(value = "core_model")
+public class ModelDO extends BaseDO {
+
+    @ConstructorExtends
+    public ModelDO(String id, String name, Boolean isDelete, List<DiagramDO> diagramDOs) {
+        super(id);
+        this.name = name;
+        this.isDelete = isDelete;
+        this.diagramDOs = diagramDOs;
+    }
+
+    private String name;
+
+    @TableField(exist = false)
+    private final String cnType = "模型";
+
+    private Boolean isDelete;
+
+    @TableField(exist = false)
+    private List<DiagramDO> diagramDOs = new ArrayList<>();
+}
+```
+
 ```java
 @Resource
 private Cache cache;
