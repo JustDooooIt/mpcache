@@ -12,6 +12,12 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
 2，目前只支持单表查询
 
 #### 示例
+```yaml
+mybatis-plus:
+  mapper-class-locations: com.example.mybatisdemo.mapper
+  cache-size: 16
+```
+
 ```java
 @Resource
 private Cache cache;
