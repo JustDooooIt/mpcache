@@ -31,7 +31,7 @@ cache.add(modelDO);
 //get 从缓存查询数据
 //目前缓存条件构造器支持eq,ne,gt,ge,lt,le,between,notBetween
 modelDO = cache.get(ModelDO.class, modelDO.getId());
-List<ModelDO> list = cache.find(Cache.find(ModelDO.class,
+List<ModelDO> list = cache.find(ModelDO.class,
         new CacheLambdaQueryWrapper<ModelDO>()
             .eq(ModelDO::getName, "model")
             .select(ModelDO::getName));
