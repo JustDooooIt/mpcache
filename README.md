@@ -23,6 +23,7 @@ mybatis-plus:
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName(value = "core_model")
+@NoArgsConstructor
 public class ModelDO extends BaseDO {
 
     @ConstructorExtends
