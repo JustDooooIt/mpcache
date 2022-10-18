@@ -14,7 +14,7 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
 #### 示例
 ```yaml
 mybatis-plus:
-  mapper-class-locations: com.example.mybatisdemo.mapper
+  mapper-class-package: com.example.mybatisdemo.mapper
   cache-size: 16
 ```
 
