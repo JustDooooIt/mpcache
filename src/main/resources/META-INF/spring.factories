@@ -3,3 +3,4 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   com.orange.mpcache.interceptor.CacheUpdateInterceptor,\
   com.orange.mpcache.interceptor.DbUpdateInterceptor,\
   com.orange.mpcache.cache.impl.DefaultCache
+spring.main.allow-circular-references=true

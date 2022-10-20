@@ -160,8 +160,6 @@ public class DefaultCache implements Cache {
         Lock readLock = readWriteLock.readLock();
         try {
             readLock.lock();
-            Wrapper<T> wrapper = new CacheLambdaQueryWrapper<>();
-            String selectAllColumn = wrapper.getSqlSelect() == null ? "" : wrapper.getSqlSelect();
             Key key = new Key(clazz, id);
             T result = (T) map.get(key);
             if (result == null) {
