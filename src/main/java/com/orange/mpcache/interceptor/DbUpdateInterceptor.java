@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
-@Component
 @Intercepts(
         @Signature(method = "update", type = Executor.class, args = { MappedStatement.class, Object.class })
 )

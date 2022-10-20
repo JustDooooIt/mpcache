@@ -2,7 +2,6 @@ package com.orange.mpcache.cache.impl;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.orange.mpcache.annotation.ConstructorExtends;
 import com.orange.mpcache.cache.Cache;
@@ -27,13 +26,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
-@Component
 public class DefaultCache implements Cache {
 
     @Value("${mybatis-plus.cache-size}")
@@ -49,6 +46,7 @@ public class DefaultCache implements Cache {
      */
     private final ThreadLocal<Object> isUpdate = new ThreadLocal<>();
 
+    @Resource
     private CacheUpdateInterceptor cacheUpdateInterceptor;
 
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -60,7 +58,6 @@ public class DefaultCache implements Cache {
     @PostConstruct
     public void init() {
         map = new FixedLinkedHashMap<>(cacheSize);
-        cacheUpdateInterceptor = new CacheUpdateInterceptor(this, mapperFactory);
     }
 
     @Override
@@ -246,6 +243,11 @@ public class DefaultCache implements Cache {
     @Override
     public ThreadLocal<Object> getIsUpdate() {
         return isUpdate;
+    }
+
+    @Override
+    public ReadWriteLock getReadWriteLock() {
+        return readWriteLock;
     }
 
     @SneakyThrows

@@ -3,6 +3,8 @@ package com.orange.mpcache.interceptor;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.orange.mpcache.cache.Cache;
+import com.orange.mpcache.command.ICommand;
+import com.orange.mpcache.command.impl.CacheSetCommand;
 import com.orange.mpcache.factory.MapperFactory;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.cglib.proxy.Enhancer;
@@ -13,29 +15,37 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Deque;
 
-@Component
 public class CacheUpdateInterceptor implements MethodInterceptor {
 
-    private final Cache cache;
+    @Resource
+    private Cache cache;
 
-    private final MapperFactory mapperFactory;
+    @Resource
+    private MapperFactory mapperFactory;
 
-    public CacheUpdateInterceptor(Cache cache, MapperFactory mapperFactory) {
-        this.cache = cache;
-        this.mapperFactory = mapperFactory;
-    }
+    private final Object obj = new Object();
+
+    @Resource(name = "commands")
+    private ThreadLocal<Deque<ICommand>> commands;
 
     @Override
     public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
         try {
-            cache.getIsUpdate().set(new Object());
-            Object obj = methodProxy.invokeSuper(o, objects);
+            cache.getIsUpdate().set(obj);
+            Object result = null;
             if (canAssigned(method)) {
-                BaseMapper<Object> baseMapper = mapperFactory.getMapper(Enhancer.isEnhanced(o.getClass()) ? o.getClass().getSuperclass() : o.getClass());
-                baseMapper.updateById(o);
+                ICommand cacheSetCommand = new CacheSetCommand(o, methodProxy, objects[0], mapperFactory);
+                if (commands.get() != null) {
+                    commands.get().push(cacheSetCommand);
+                } else {
+                    cacheSetCommand.execute();
+                }
+            } else {
+                result = methodProxy.invokeSuper(o, objects);
             }
-            return obj;
+            return result;
         } finally {
             cache.getIsUpdate().remove();
         }

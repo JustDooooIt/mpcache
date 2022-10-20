@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
 
 public interface Cache {
     <T> boolean add(T o);
@@ -20,4 +21,6 @@ public interface Cache {
     void clearCache();
 
     ThreadLocal<Object> getIsUpdate();
+
+    ReadWriteLock getReadWriteLock();
 }

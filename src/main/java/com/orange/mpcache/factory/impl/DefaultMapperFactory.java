@@ -15,7 +15,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
 public class DefaultMapperFactory implements MapperFactory {
 
     private final List<Class<BaseMapper<?>>> mapperClassList = new ArrayList<>();
