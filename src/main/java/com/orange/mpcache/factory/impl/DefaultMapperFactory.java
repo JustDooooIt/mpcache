@@ -29,7 +29,7 @@ public class DefaultMapperFactory implements MapperFactory {
     @PostConstruct
     public void initMapperList() throws IOException, ClassNotFoundException {
         if (mapperLocations.length == 0) {
-            throw new RuntimeException("找不到mapper文件，请配置mapper-class-locations");
+            throw new RuntimeException("找不到mapper文件，请配置mapper-class-package");
         }
         for (String location: mapperLocations) {
             for (org.springframework.core.io.Resource resource : applicationContext.getResources(location.replace(".", "/") + "/**")) {

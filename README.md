@@ -12,6 +12,40 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
 2，目前只支持单表查询
 
 #### 示例
+```yaml
+mybatis-plus:
+  mapper-class-package: com.example.mybatisdemo.mapper
+  cache-size: 16
+```
+
+实体类需要加@ConstructorExtends，将需要的属性写入构造器
+```java
+@Data
+@EqualsAndHashCode(callSuper = true)
+@TableName(value = "core_model")
+@NoArgsConstructor
+public class ModelDO extends BaseDO {
+
+    @ConstructorExtends
+    public ModelDO(String id, String name, Boolean isDelete, List<DiagramDO> diagramDOs) {
+        super(id);
+        this.name = name;
+        this.isDelete = isDelete;
+        this.diagramDOs = diagramDOs;
+    }
+
+    private String name;
+
+    @TableField(exist = false)
+    private final String cnType = "模型";
+
+    private Boolean isDelete;
+
+    @TableField(exist = false)
+    private List<DiagramDO> diagramDOs = new ArrayList<>();
+}
+```
+
 ```java
 @Resource
 private Cache cache;
@@ -25,7 +59,7 @@ cache.add(modelDO);
 //get 从缓存查询数据
 //目前缓存条件构造器支持eq,ne,gt,ge,lt,le,between,notBetween
 modelDO = cache.get(ModelDO.class, modelDO.getId());
-List<ModelDO> list = cache.find(Cache.find(ModelDO.class,
+List<ModelDO> list = cache.find(ModelDO.class,
         new CacheLambdaQueryWrapper<ModelDO>()
             .eq(ModelDO::getName, "model")
             .select(ModelDO::getName));
