@@ -11,8 +11,6 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
 
 2，目前只支持单表查询
 
-3，以支持@Transactional注解，实现缓存错误回滚，目前仅支持默认配置
-
 #### 示例
 ```yaml
 mybatis-plus:
