@@ -47,14 +47,17 @@ public class CacheTransactionAspect {
      */
     @Before(value = "pointCut() && @annotation(transactional)")
     public void before(Transactional transactional) {
-        if (commands.get() == null) {
-            commands.set(new ConcurrentLinkedDeque<>());
-        }
-        if (undoCommands.get() == null) {
-            undoCommands.set(new ConcurrentLinkedDeque<>());
-        }
-        if (transactionalQueue.get() == null) {
-            transactionalQueue.set(new ConcurrentLinkedDeque<>());
+        Propagation propagation = transactional.propagation();
+        if (propagation == Propagation.REQUIRED) {
+            if (commands.get() == null) {
+                commands.set(new ConcurrentLinkedDeque<>());
+            }
+            if (undoCommands.get() == null) {
+                undoCommands.set(new ConcurrentLinkedDeque<>());
+            }
+            if (transactionalQueue.get() == null) {
+                transactionalQueue.set(new ConcurrentLinkedDeque<>());
+            }
         }
     }
 

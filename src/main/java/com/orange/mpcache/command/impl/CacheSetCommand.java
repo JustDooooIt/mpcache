@@ -36,8 +36,6 @@ public  class CacheSetCommand implements ICommand {
         String fieldName = fieldNameBuilder.replace(0, 1, fieldNameBuilder.substring(0, 1).toLowerCase(Locale.ROOT)).toString();
         oldValue = FieldUtils.readField(o, fieldName, true);
         methodProxy.invokeSuper(o, new Object[]{ newValue });
-        BaseMapper<Object> baseMapper = mapperFactory.getMapper(Enhancer.isEnhanced(o.getClass()) ? o.getClass().getSuperclass() : o.getClass());
-        baseMapper.updateById(o);
     }
 
     @SneakyThrows

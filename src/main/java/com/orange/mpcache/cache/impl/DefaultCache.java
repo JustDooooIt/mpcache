@@ -57,7 +57,7 @@ public class DefaultCache implements Cache {
 
     @PostConstruct
     public void init() {
-        map = new FixedLinkedHashMap<>(cacheSize);
+        map = Collections.synchronizedMap(new WeakHashMap<>());
     }
 
     @Override
