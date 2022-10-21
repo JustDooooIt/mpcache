@@ -11,11 +11,12 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
 
 2，目前只支持单表查询
 
+3，以支持@Transactional注解，实现缓存错误回滚，目前仅支持默认配置
+
 #### 示例
 ```yaml
 mybatis-plus:
   mapper-class-package: com.example.mybatisdemo.mapper
-  cache-size: 16
 ```
 
 实体类需要加@ConstructorExtends，将需要的属性写入构造器
