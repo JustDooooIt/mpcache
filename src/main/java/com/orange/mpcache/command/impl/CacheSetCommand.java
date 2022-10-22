@@ -12,29 +12,31 @@ import java.util.Locale;
 
 public  class CacheSetCommand implements ICommand {
 
-    private Object o;
+    private final Object o;
 
-    private MethodProxy methodProxy;
+    private final MethodProxy methodProxy;
 
-    private Object newValue;
+    private final Object newValue;
 
-    private Object oldValue;
+    private final Object oldValue;
 
-    private MapperFactory mapperFactory;
+    private final MapperFactory mapperFactory;
 
+    @SneakyThrows
     public CacheSetCommand(Object o, MethodProxy methodProxy, Object newValue, MapperFactory mapperFactory) {
         this.o = o;
         this.methodProxy = methodProxy;
         this.newValue = newValue;
         this.mapperFactory = mapperFactory;
+
+        StringBuilder fieldNameBuilder = new StringBuilder(methodProxy.getSignature().getName().substring(3));
+        String fieldName = fieldNameBuilder.replace(0, 1, fieldNameBuilder.substring(0, 1).toLowerCase(Locale.ROOT)).toString();
+        this.oldValue = FieldUtils.readField(o, fieldName, true);
     }
 
     @SneakyThrows
     @Override
     public void execute() {
-        StringBuilder fieldNameBuilder = new StringBuilder(methodProxy.getSignature().getName().substring(3));
-        String fieldName = fieldNameBuilder.replace(0, 1, fieldNameBuilder.substring(0, 1).toLowerCase(Locale.ROOT)).toString();
-        oldValue = FieldUtils.readField(o, fieldName, true);
         methodProxy.invokeSuper(o, new Object[]{ newValue });
     }
 

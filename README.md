@@ -13,6 +13,9 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
 
 3，以支持@Transactional注解，实现缓存错误回滚，目前仅支持默认配置
 
+#### 打包
+执行mvn clean package assembly:single进行打包，在项目导入mpcache-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+
 #### 示例
 ```yaml
 mybatis-plus:
