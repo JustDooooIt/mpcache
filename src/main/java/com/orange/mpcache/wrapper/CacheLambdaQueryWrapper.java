@@ -297,22 +297,4 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
         return predicate == null ? t -> true : predicate;
     }
 
-    /**
-     * 创建新对象，对属性浅拷贝
-     * @return 克隆对象
-     */
-    @SneakyThrows
-    @Override
-    public CacheLambdaQueryWrapper<T> clone() {
-        CacheLambdaQueryWrapper<T> wrapper = new CacheLambdaQueryWrapper<>();
-        Class<?> clazz = this.getClass();
-        List<Field> fieldList = FieldUtils.getAllFieldsList(clazz);
-        for (Field field : fieldList) {
-            if (!"typedThis".equals(field.getName())) {
-                Object value = FieldUtils.readField(field, this, true);
-                FieldUtils.writeField(field, wrapper, value, true);
-            }
-        }
-        return wrapper;
-    }
 }
