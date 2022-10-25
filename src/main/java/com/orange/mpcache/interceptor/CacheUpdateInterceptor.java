@@ -35,7 +35,7 @@ public class CacheUpdateInterceptor implements MethodInterceptor {
     private ThreadLocal<Deque<ICommand>> commands;
 
     @Override
-    public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+    public synchronized Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
         try {
             cache.getIsUpdate().set(obj);
             Object result = null;
