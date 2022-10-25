@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.orange.mpcache.annotation.ConstructorExtends;
 import com.orange.mpcache.cache.Cache;
+import com.orange.mpcache.command.ICommand;
+import com.orange.mpcache.command.impl.CachePutCommand;
+import com.orange.mpcache.command.impl.CacheRemoveCommand;
 import com.orange.mpcache.factory.MapperFactory;
 import com.orange.mpcache.interceptor.CacheUpdateInterceptor;
 import com.orange.mpcache.utils.FixedLinkedHashMap;
@@ -53,6 +56,9 @@ public class DefaultCache implements Cache {
 
     private Map<Key, Object> map;
 
+    @Resource
+    private ThreadLocal<Deque<ICommand>> commands;
+
     private final Object PRESENT = new Object();
 
     @PostConstruct
@@ -62,19 +68,23 @@ public class DefaultCache implements Cache {
 
     @Override
     @SneakyThrows
-    @Transactional
     public <T> boolean add(T o) {
         Lock writeLock = readWriteLock.writeLock();
         try {
             writeLock.lock();
-            isUpdate.set(PRESENT);
+            isUpdate.set(new Object());
             Serializable id = getId(o);
             BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass());
             if (id == null) {
                 baseMapper.insert(o);
                 id = getId(o);
                 o = baseMapper.selectById(id);
-                map.put(new Key(o.getClass(), id), createProxy(o));
+                ICommand command = new CachePutCommand(map, new Key(o.getClass(), id), createProxy(o));
+                if (commands.get() != null) {
+                    commands.get().push(command);
+                } else {
+                    command.execute();
+                }
                 return true;
             } else {
                 Key key = new Key(o.getClass(), id);
@@ -85,8 +95,14 @@ public class DefaultCache implements Cache {
                     if (dbResult == null) {
                         baseMapper.insert(o);
                         id = getId(o);
+                        o = baseMapper.selectById(id);
                         key = new Key(o.getClass(), id);
-                        map.put(key, o);
+                        ICommand command = new CachePutCommand(map, key, createProxy(o));
+                        if (commands.get() != null) {
+                            commands.get().push(command);
+                        } else {
+                            command.execute();
+                        }
                         return true;
                     } else {
                         return false;
@@ -103,21 +119,34 @@ public class DefaultCache implements Cache {
     @SneakyThrows
     @Transactional
     public <T> boolean remove(@NotNull T o) {
-        if (!Enhancer.isEnhanced(o.getClass())) {
-            return false;
-        }
         Lock writeLock = readWriteLock.writeLock();
         try {
             writeLock.lock();
-            isUpdate.set(PRESENT);
-            if (Enhancer.isEnhanced(o.getClass())) {
-                BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass().getSuperclass());
-                baseMapper.deleteById(o);
-                return map.remove(new Key(o.getClass().getSuperclass(), getId(o)), o);
+            isUpdate.set(new Object());
+            BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass().getSuperclass());
+            int row = baseMapper.deleteById(o);
+            if (row == 0) {
+                return false;
             } else {
-                BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass());
-                baseMapper.deleteById(o);
-                return map.remove(new Key(o.getClass(), getId(o)), o);
+                if (Enhancer.isEnhanced(o.getClass())) {
+                    Key key = new Key(o.getClass().getSuperclass(), getId(o));
+                    ICommand command = new CacheRemoveCommand(map, key, o);
+                    if (commands.get() != null) {
+                        commands.get().push(command);
+                    } else {
+                        command.execute();
+                    }
+                    return !map.containsKey(key);
+                } else {
+                    Key key = new Key(o.getClass(), getId(o));
+                    ICommand command = new CacheRemoveCommand(map, key, o);
+                    if (commands.get() != null) {
+                        commands.get().push(command);
+                    } else {
+                        command.execute();
+                    }
+                    return !map.containsKey(key);
+                }
             }
         } finally {
             isUpdate.remove();
