@@ -12,18 +12,30 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
 
 3，以支持@Transactional注解，实现缓存错误回滚，目前仅支持默认配置
 
-4，项目需要引入aop，mybatisplus
-
 #### 打包
 执行mvn clean package assembly:single进行打包，在项目导入mpcache-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+
+#### 引入其他依赖
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-aop</artifactId>
+    <version>版本</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-lang3</artifactId>
+    <version>版本</version>
+</dependency>
+<dependency>
+    <groupId>com.baomidou</groupId>
+    <artifactId>mybatis-plus-boot-starter</artifactId>
+    <version>版本</version>
+</dependency>
 
 #### 示例
 ```yaml
 mybatis-plus:
   mapper-class-package: com.example.mybatisdemo.mapper
-spring:
-  main:
-    allow-circular-references: true
 ```
 
 ```java
