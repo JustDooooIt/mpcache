@@ -1,4 +1,4 @@
-package com.orange.mpcache.utils;
+package io.github.justdooooit.mpcache.utils;
 
 import java.util.LinkedHashMap;
 

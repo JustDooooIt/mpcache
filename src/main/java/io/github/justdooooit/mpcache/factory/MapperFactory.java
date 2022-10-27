@@ -1,4 +1,4 @@
-package com.orange.mpcache.factory;
+package io.github.justdooooit.mpcache.factory;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 

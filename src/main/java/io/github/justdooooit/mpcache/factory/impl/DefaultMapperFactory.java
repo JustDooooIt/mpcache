@@ -1,12 +1,10 @@
-package com.orange.mpcache.factory.impl;
+package io.github.justdooooit.mpcache.factory.impl;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.orange.mpcache.factory.MapperFactory;
+import io.github.justdooooit.mpcache.factory.MapperFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;

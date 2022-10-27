@@ -1,7 +1,7 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.orange.mpcache.factory.impl.DefaultMapperFactory,\
-  com.orange.mpcache.interceptor.CacheUpdateInterceptor,\
-  com.orange.mpcache.interceptor.DbUpdateInterceptor,\
-  com.orange.mpcache.cache.impl.DefaultCache,\
-  com.orange.mpcache.config.CacheTransactionConfig,\
-  com.orange.mpcache.aspect.CacheTransactionAspect
+  io.github.justdooooit.mpcache.factory.impl.DefaultMapperFactory,\
+  io.github.justdooooit.mpcache.interceptor.CacheUpdateInterceptor,\
+  io.github.justdooooit.mpcache.interceptor.DbUpdateInterceptor,\
+  io.github.justdooooit.mpcache.cache.impl.DefaultCache,\
+  io.github.justdooooit.mpcache.config.CacheTransactionConfig,\
+  io.github.justdooooit.mpcache.aspect.CacheTransactionAspect

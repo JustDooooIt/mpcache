@@ -1,4 +1,4 @@
-package com.orange.mpcache.base;
+package io.github.justdooooit.mpcache.base;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

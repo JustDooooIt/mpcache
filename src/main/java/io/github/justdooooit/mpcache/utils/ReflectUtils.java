@@ -1,4 +1,4 @@
-package com.orange.mpcache.utils;
+package io.github.justdooooit.mpcache.utils;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import org.apache.commons.lang3.reflect.FieldUtils;

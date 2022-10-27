@@ -8,7 +8,7 @@
         <version>2.7.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.orange</groupId>
+    <groupId>io.github.justdooooit</groupId>
     <artifactId>mpcache</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>mpcache</name>

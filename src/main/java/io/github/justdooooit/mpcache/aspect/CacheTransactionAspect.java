@@ -1,10 +1,9 @@
-package com.orange.mpcache.aspect;
+package io.github.justdooooit.mpcache.aspect;
 
-import com.orange.mpcache.cache.Cache;
-import com.orange.mpcache.command.ICommand;
+import io.github.justdooooit.mpcache.cache.Cache;
+import io.github.justdooooit.mpcache.command.ICommand;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 

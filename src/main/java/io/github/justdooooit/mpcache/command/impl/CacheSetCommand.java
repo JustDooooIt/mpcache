@@ -1,11 +1,9 @@
-package com.orange.mpcache.command.impl;
+package io.github.justdooooit.mpcache.command.impl;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.orange.mpcache.command.ICommand;
-import com.orange.mpcache.factory.MapperFactory;
+import io.github.justdooooit.mpcache.command.ICommand;
+import io.github.justdooooit.mpcache.factory.MapperFactory;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodProxy;
 
 import java.util.Locale;

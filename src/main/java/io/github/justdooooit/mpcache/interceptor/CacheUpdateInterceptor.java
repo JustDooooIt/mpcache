@@ -1,18 +1,17 @@
-package com.orange.mpcache.interceptor;
+package io.github.justdooooit.mpcache.interceptor;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.orange.mpcache.cache.Cache;
-import com.orange.mpcache.command.ICommand;
-import com.orange.mpcache.command.impl.CacheSetCommand;
-import com.orange.mpcache.factory.MapperFactory;
+import io.github.justdooooit.mpcache.cache.Cache;
+import io.github.justdooooit.mpcache.command.ICommand;
+import io.github.justdooooit.mpcache.command.impl.CacheSetCommand;
+import io.github.justdooooit.mpcache.factory.MapperFactory;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.Serializable;

@@ -1,7 +1,7 @@
-package com.orange.mpcache.command.impl;
+package io.github.justdooooit.mpcache.command.impl;
 
-import com.orange.mpcache.base.Key;
-import com.orange.mpcache.command.ICommand;
+import io.github.justdooooit.mpcache.base.Key;
+import io.github.justdooooit.mpcache.command.ICommand;
 
 import java.util.Map;
 

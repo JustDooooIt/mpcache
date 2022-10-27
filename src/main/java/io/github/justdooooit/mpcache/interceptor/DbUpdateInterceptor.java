@@ -1,13 +1,12 @@
-package com.orange.mpcache.interceptor;
+package io.github.justdooooit.mpcache.interceptor;
 
-import com.orange.mpcache.cache.Cache;
+import io.github.justdooooit.mpcache.cache.Cache;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Signature;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 

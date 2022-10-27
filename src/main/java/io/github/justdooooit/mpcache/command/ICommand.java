@@ -1,4 +1,4 @@
-package com.orange.mpcache.command;
+package io.github.justdooooit.mpcache.command;
 
 public interface ICommand {
     void execute();

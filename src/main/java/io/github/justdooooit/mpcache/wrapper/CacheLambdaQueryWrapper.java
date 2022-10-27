@@ -1,4 +1,4 @@
-package com.orange.mpcache.wrapper;
+package io.github.justdooooit.mpcache.wrapper;
 
 import com.baomidou.mybatisplus.core.conditions.AbstractLambdaWrapper;
 import com.baomidou.mybatisplus.core.conditions.SharedString;
@@ -13,13 +13,10 @@ import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
 import com.baomidou.mybatisplus.core.toolkit.support.LambdaMeta;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.compare.ComparableUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.ibatis.reflection.property.PropertyNamer;
 
-import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;

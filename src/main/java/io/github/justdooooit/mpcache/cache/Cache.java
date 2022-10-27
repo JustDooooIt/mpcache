@@ -1,6 +1,6 @@
-package com.orange.mpcache.cache;
+package io.github.justdooooit.mpcache.cache;
 
-import com.orange.mpcache.wrapper.CacheLambdaQueryWrapper;
+import io.github.justdooooit.mpcache.wrapper.CacheLambdaQueryWrapper;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;

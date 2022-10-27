@@ -1,8 +1,7 @@
-package com.orange.mpcache.config;
+package io.github.justdooooit.mpcache.config;
 
-import com.orange.mpcache.command.ICommand;
+import io.github.justdooooit.mpcache.command.ICommand;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Deque;
