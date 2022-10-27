@@ -16,6 +16,7 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
 执行mvn clean package assembly:single进行打包，在项目导入mpcache-0.0.1-SNAPSHOT-jar-with-dependencies.jar
 
 #### 引入其他依赖
+```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-aop</artifactId>
@@ -31,7 +32,7 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
     <artifactId>mybatis-plus-boot-starter</artifactId>
     <version>版本</version>
 </dependency>
-
+```
 #### 示例
 ```yaml
 mybatis-plus:
