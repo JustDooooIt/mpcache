@@ -7,6 +7,7 @@ import io.github.justdooooit.mpcache.cache.Cache;
 import io.github.justdooooit.mpcache.command.ICommand;
 import io.github.justdooooit.mpcache.command.impl.CacheSetCommand;
 import io.github.justdooooit.mpcache.factory.MapperFactory;
+import io.github.justdooooit.mpcache.utils.ReflectUtils;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.springframework.cglib.proxy.Enhancer;
@@ -97,18 +98,11 @@ public class CacheUpdateInterceptor implements MethodInterceptor {
         }
     }
 
-    private <T> Serializable getId(T o) throws IllegalAccessException {
-        List<Field> fields = FieldUtils.getFieldsListWithAnnotation(o.getClass(), TableId.class);
-        if (fields.size() == 0) {
-            throw new RuntimeException("主键不存在，请设置主键");
-        }
-        return (Serializable) FieldUtils.readField(fields.get(0), o, true);
-    }
     @SneakyThrows
     private void updateDB(Object o, Object value, Method method) {
         Object dbo = o.getClass().newInstance();
         Field idField = getIdField(dbo.getClass());
-        FieldUtils.writeField(idField, dbo, getId(o), true);
+        FieldUtils.writeField(idField, dbo, ReflectUtils.getId(o), true);
         Field field = FieldUtils.getField(dbo.getClass(), getFieldNameFromMethodName(method.getName()), true);
         FieldUtils.writeField(field, dbo, value, true);
         BaseMapper<Object> baseMapper = mapperFactory.getMapper(Enhancer.isEnhanced(o.getClass()) ? o.getClass().getSuperclass() : o.getClass());

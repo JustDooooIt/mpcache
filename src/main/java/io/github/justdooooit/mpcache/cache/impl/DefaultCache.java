@@ -70,11 +70,11 @@ public class DefaultCache implements Cache {
         try {
             writeLock.lock();
             isUpdate.set(PRESENT);
-            Serializable id = getId(o);
+            Serializable id = ReflectUtils.getId(o);
             BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass());
             if (id == null) {
                 baseMapper.insert(o);
-                id = getId(o);
+                id = ReflectUtils.getId(o);
                 o = baseMapper.selectById(id);
                 ICommand command = new CachePutCommand(map, new Key(o.getClass(), id), createProxy(o));
                 if (commands.get() != null) {
@@ -91,7 +91,7 @@ public class DefaultCache implements Cache {
                     T dbResult = baseMapper.selectById(id);
                     if (dbResult == null) {
                         baseMapper.insert(o);
-                        id = getId(o);
+                        id = ReflectUtils.getId(o);
                         o = baseMapper.selectById(id);
                         key = new Key(o.getClass(), id);
                         ICommand command = new CachePutCommand(map, key, createProxy(o));
@@ -126,7 +126,7 @@ public class DefaultCache implements Cache {
                 return false;
             } else {
                 if (Enhancer.isEnhanced(o.getClass())) {
-                    Key key = new Key(o.getClass().getSuperclass(), getId(o));
+                    Key key = new Key(o.getClass().getSuperclass(), ReflectUtils.getId(o));
                     ICommand command = new CacheRemoveCommand(map, key, o);
                     if (commands.get() != null) {
                         commands.get().push(command);
@@ -135,7 +135,7 @@ public class DefaultCache implements Cache {
                     }
                     return !map.containsKey(key);
                 } else {
-                    Key key = new Key(o.getClass(), getId(o));
+                    Key key = new Key(o.getClass(), ReflectUtils.getId(o));
                     ICommand command = new CacheRemoveCommand(map, key, o);
                     if (commands.get() != null) {
                         commands.get().push(command);
@@ -158,19 +158,19 @@ public class DefaultCache implements Cache {
         try{
             readLock.lock();
             if (Enhancer.isEnhanced(o.getClass())) {
-                if (map.containsKey(new Key(o.getClass().getSuperclass(), getId(o)))) {
+                if (map.containsKey(new Key(o.getClass().getSuperclass(), ReflectUtils.getId(o)))) {
                     return true;
                 } else {
                     BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass().getSuperclass());
-                    o = baseMapper.selectById(getId(o));
+                    o = baseMapper.selectById(ReflectUtils.getId(o));
                     return o != null;
                 }
             } else {
-                if (map.containsKey(new Key(o.getClass(), getId(o)))) {
+                if (map.containsKey(new Key(o.getClass(), ReflectUtils.getId(o)))) {
                     return true;
                 } else {
                     BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass());
-                    o = baseMapper.selectById(getId(o));
+                    o = baseMapper.selectById(ReflectUtils.getId(o));
                     return o != null;
                 }
             }
@@ -220,7 +220,9 @@ public class DefaultCache implements Cache {
                 List<T> dbResult = baseMapper.selectList(wrapper);
                 cacheResultList = createProxyByList(dbResult);
                 for (T t : cacheResultList) {
-                    fieldNameMap.put(new Key(t.getClass().getSuperclass(), ReflectUtils.getId(t)), wrapper.getFieldSelect());
+                    Key key = new Key(t.getClass().getSuperclass(), ReflectUtils.getId(t));
+                    map.put(key, t);
+                    fieldNameMap.put(key, wrapper.getFieldSelect());
                 }
                 return cacheResultList;
             } else {
@@ -275,20 +277,11 @@ public class DefaultCache implements Cache {
     private <T> List<T> createProxyByList(List<T> list) {
         List<T> result = new ArrayList<>();
         for (T data : list) {
-            Key key = new Key(data.getClass(), getId(data));
+            Key key = new Key(data.getClass(), ReflectUtils.getId(data));
             Object proxy = createProxy(data);
-            map.put(key, proxy);
             result.add((T) proxy);
         }
         return result;
-    }
-
-    private <T> Serializable getId(T o) throws IllegalAccessException {
-        List<Field> fields = FieldUtils.getFieldsListWithAnnotation(o.getClass(), TableId.class);
-        if (fields.size() == 0) {
-            throw new RuntimeException("主键不存在，请设置主键");
-        }
-        return (Serializable) FieldUtils.readField(fields.get(0), o, true);
     }
 
     private Object createProxy(Object o) throws IllegalAccessException {
