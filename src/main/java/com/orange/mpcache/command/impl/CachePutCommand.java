@@ -7,11 +7,11 @@ import java.util.Map;
 
 public class CachePutCommand implements ICommand {
 
-    private Map<Key, Object> map;
+    private final Map<Key, Object> map;
 
-    private Key key;
+    private final Key key;
 
-    private Object newValue;
+    private final Object newValue;
 
     public CachePutCommand(Map<Key, Object> map, Key key, Object newValue) {
         this.map = map;

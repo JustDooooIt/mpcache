@@ -3,7 +3,6 @@ package com.orange.mpcache.cache.impl;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.orange.mpcache.annotation.ConstructorExtends;
 import com.orange.mpcache.cache.Cache;
 import com.orange.mpcache.command.ICommand;
 import com.orange.mpcache.command.impl.CachePutCommand;
@@ -72,7 +71,7 @@ public class DefaultCache implements Cache {
         Lock writeLock = readWriteLock.writeLock();
         try {
             writeLock.lock();
-            isUpdate.set(new Object());
+            isUpdate.set(PRESENT);
             Serializable id = getId(o);
             BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass());
             if (id == null) {
@@ -122,7 +121,7 @@ public class DefaultCache implements Cache {
         Lock writeLock = readWriteLock.writeLock();
         try {
             writeLock.lock();
-            isUpdate.set(new Object());
+            isUpdate.set(PRESENT);
             BaseMapper<T> baseMapper = mapperFactory.getMapper(o.getClass().getSuperclass());
             int row = baseMapper.deleteById(o);
             if (row == 0) {
@@ -299,26 +298,15 @@ public class DefaultCache implements Cache {
         return (Serializable) FieldUtils.readField(fields.get(0), o, true);
     }
 
-    private void initEnhancerProperties(@NotNull Object o, List<Class<?>> typeList, List<Object> dataList) throws InvocationTargetException, IllegalAccessException {
-        Constructor<?>[] constructors = o.getClass().getConstructors();
-        for (Constructor<?> constructor: constructors) {
-            if (constructor.getAnnotation(ConstructorExtends.class) != null) {
-                for (Parameter parameter : constructor.getParameters()) {
-                    typeList.add(parameter.getType());
-                    dataList.add(FieldUtils.readField(o, parameter.getName(), true));
-                }
-                break;
-            }
-        }
-    }
-
-    private Object createProxy(Object o) throws InvocationTargetException, IllegalAccessException {
-        List<Class<?>> typeList = new LinkedList<>();
-        List<Object> dataList = new LinkedList<>();
-        initEnhancerProperties(o, typeList, dataList);
+    private Object createProxy(Object o) throws IllegalAccessException {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(o.getClass());
         enhancer.setCallback(cacheUpdateInterceptor);
-        return enhancer.create(typeList.toArray(new Class<?>[0]), dataList.toArray());
+        List<Field> fields = FieldUtils.getAllFieldsList(o.getClass());
+        Object proxy = enhancer.create();
+        for (Field field : fields) {
+            FieldUtils.writeField(field, proxy, FieldUtils.readField(field, o, true), true);
+        }
+        return proxy;
     }
 }

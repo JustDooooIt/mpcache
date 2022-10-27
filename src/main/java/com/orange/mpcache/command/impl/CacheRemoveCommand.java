@@ -7,9 +7,9 @@ import java.util.Map;
 
 public class CacheRemoveCommand implements ICommand {
 
-    private Map<Key, Object> map;
+    private final Map<Key, Object> map;
 
-    private Key key;
+    private final Key key;
 
     private Object oldValue;
 
