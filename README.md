@@ -21,6 +21,9 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
 ```yaml
 mybatis-plus:
   mapper-class-package: com.example.mybatisdemo.mapper
+spring:
+  main:
+    allow-circular-references: true
 ```
 
 ```java
