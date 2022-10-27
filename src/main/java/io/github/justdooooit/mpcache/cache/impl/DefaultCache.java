@@ -244,7 +244,11 @@ public class DefaultCache implements Cache {
                         Key key = new Key(t.getClass(), ReflectUtils.getId(t));
                         fieldNameMap.put(key, wrapper.getFieldSelect());
                     }
-                    return createProxyByList(dbResult);
+                    List<T> proxyList =  createProxyByList(dbResult);
+                    for (T t : proxyList) {
+                        map.put(new Key(t.getClass().getSuperclass(), ReflectUtils.getId(t)), t);
+                    }
+                    return proxyList;
                 }
             }
         } finally {
