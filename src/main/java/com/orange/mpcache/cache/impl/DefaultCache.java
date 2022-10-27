@@ -10,6 +10,7 @@ import com.orange.mpcache.command.impl.CacheRemoveCommand;
 import com.orange.mpcache.factory.MapperFactory;
 import com.orange.mpcache.interceptor.CacheUpdateInterceptor;
 import com.orange.mpcache.utils.FixedLinkedHashMap;
+import com.orange.mpcache.utils.ReflectUtils;
 import com.orange.mpcache.wrapper.CacheLambdaQueryWrapper;
 import com.orange.mpcache.base.Key;
 import lombok.SneakyThrows;
@@ -28,6 +29,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -57,6 +59,8 @@ public class DefaultCache implements Cache {
 
     @Resource
     private ThreadLocal<Deque<ICommand>> commands;
+
+    private final Map<Key, String> fieldNameMap = new ConcurrentHashMap<>();
 
     private final Object PRESENT = new Object();
 
@@ -219,39 +223,34 @@ public class DefaultCache implements Cache {
             CacheLambdaQueryWrapper<T> copyWrapper = wrapper.clone().selectAll();
             Long count = baseMapper.selectCount(copyWrapper);
             if (cacheResultList.size() != count) {
-                List<T> dbResult = baseMapper.selectList(copyWrapper);
-                cacheResultList = getProxyByList(dbResult);
-            }
-            Map<Field, Boolean> fieldMatchMap = new HashMap<>();
-            cacheResultList = cacheResultList.stream().peek(t -> {
-                if (wrapper.getFieldList().size() > 0) {
-                    List<Field> fields = FieldUtils.getAllFieldsList(t.getClass());
-                    for (Field field : fields) {
-                        fieldMatchMap.put(field, false);
-                    }
-                    for (Field field : fields) {
-                        for (String selectField : wrapper.getFieldList()) {
-                            if (field.getName().equals(selectField)) {
-                                fieldMatchMap.put(field, true);
-                                break;
-                            }
-                        }
-                    }
-                    for (Field field : fieldMatchMap.keySet()) {
-                        boolean isMatch = fieldMatchMap.get(field);
-                        TableField tableField = field.getAnnotation(TableField.class);
-                        if (!isMatch && !field.getName().contains("CGLIB$") && (tableField == null || tableField.exist())) {
-                            try {
-                                FieldUtils.writeField(field, t, null, true);
-                            } catch (IllegalAccessException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                    }
-                    fieldMatchMap.clear();
+                List<T> dbResult = baseMapper.selectList(wrapper);
+                cacheResultList = createProxyByList(dbResult);
+                for (T t : cacheResultList) {
+                    fieldNameMap.put(new Key(t.getClass().getSuperclass(), ReflectUtils.getId(t)), wrapper.getFieldSelect());
                 }
-            }).collect(Collectors.toList());
-            return cacheResultList;
+                return cacheResultList;
+            } else {
+                String fieldSelect = wrapper.getFieldSelect();
+                boolean isSameSelect = true;
+                for (T t : cacheResultList) {
+                    Serializable id = ReflectUtils.getId(t);
+                    Key key = new Key(t.getClass().getSuperclass(), id);
+                    if (!Objects.equals(fieldNameMap.get(key), fieldSelect)) {
+                        isSameSelect = false;
+                        break;
+                    }
+                }
+                if (isSameSelect) {
+                    return cacheResultList;
+                } else {
+                    List<T> dbResult = baseMapper.selectList(wrapper);
+                    for (T t : dbResult) {
+                        Key key = new Key(t.getClass(), ReflectUtils.getId(t));
+                        fieldNameMap.put(key, wrapper.getFieldSelect());
+                    }
+                    return createProxyByList(dbResult);
+                }
+            }
         } finally {
             readLock.unlock();
         }
@@ -279,7 +278,7 @@ public class DefaultCache implements Cache {
     }
 
     @SneakyThrows
-    private <T> List<T> getProxyByList(List<T> list) {
+    private <T> List<T> createProxyByList(List<T> list) {
         List<T> result = new ArrayList<>();
         for (T data : list) {
             Key key = new Key(data.getClass(), getId(data));

@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.core.toolkit.support.LambdaMeta;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.compare.ComparableUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.ibatis.reflection.property.PropertyNamer;
@@ -28,7 +29,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLambdaQueryWrapper<T>>
-        implements Query<CacheLambdaQueryWrapper<T>, T, SFunction<T, ?>>, Cloneable {
+        implements Query<CacheLambdaQueryWrapper<T>, T, SFunction<T, ?>> {
 
     private Predicate<T> predicate;
 
@@ -121,6 +122,10 @@ public class CacheLambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, CacheLa
     @Override
     public String getSqlSelect() {
         return sqlSelect.getStringValue();
+    }
+
+    public String getFieldSelect() {
+        return StringUtils.join(fieldList, ",");
     }
 
     public String getSqlSelectOrDefault() {
