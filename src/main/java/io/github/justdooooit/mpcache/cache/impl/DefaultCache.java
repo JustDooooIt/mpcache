@@ -31,9 +31,6 @@ import java.util.stream.Collectors;
 
 public class DefaultCache implements Cache {
 
-    @Value("${mybatis-plus.cache-size}")
-    private Integer cacheSize = 16;
-
     @Resource
     private MapperFactory mapperFactory;
 
