@@ -23,11 +23,6 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
     <version>版本</version>
 </dependency>
 <dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>commons-lang3</artifactId>
-    <version>版本</version>
-</dependency>
-<dependency>
     <groupId>com.baomidou</groupId>
     <artifactId>mybatis-plus-boot-starter</artifactId>
     <version>版本</version>
