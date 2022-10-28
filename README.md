@@ -15,6 +15,15 @@ mybatisplus缓存，对返回对象进行增强，调用set方法自动同步到
 #### 打包
 执行mvn clean package assembly:single进行打包，在项目导入mpcache-0.0.1-SNAPSHOT-jar-with-dependencies.jar
 
+#### 引入
+```xml
+<dependency>
+    <groupId>io.github.justdooooit</groupId>
+    <artifactId>mpcache</artifactId>
+    <version>1.0.1</version>
+</dependency>
+```
+
 #### 引入其他依赖
 ```xml
 <dependency>
