@@ -20,7 +20,7 @@ public class CacheTransactionAspect {
     @Resource(name = "commands")
     private ThreadLocal<Deque<ICommand>> commands;
 
-    @Resource
+    @Resource(name = "transactionalQueue")
     private ThreadLocal<Deque<Transactional>> transactionalQueue;
 
     private final ThreadLocal<Deque<ICommand>> undoCommands = new ThreadLocal<>();
