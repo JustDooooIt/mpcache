@@ -48,7 +48,7 @@ public class DefaultCache implements Cache {
 
     private Map<Key, Object> map;
 
-    @Resource
+    @Resource(name = "commands")
     private ThreadLocal<Deque<ICommand>> commands;
 
     private final Map<Key, String> fieldNameMap = new ConcurrentHashMap<>();
